@@ -1,0 +1,2 @@
+/usr/bin/ar cr ../lib/libdbscan.a  CMakeFiles/dbscan.dir/dbscan.cpp.o
+/usr/bin/ranlib ../lib/libdbscan.a

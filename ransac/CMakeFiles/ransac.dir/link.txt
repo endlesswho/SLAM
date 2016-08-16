@@ -1,0 +1,2 @@
+/usr/bin/ar cr ../lib/libransac.a  CMakeFiles/ransac.dir/ransac.cpp.o
+/usr/bin/ranlib ../lib/libransac.a
