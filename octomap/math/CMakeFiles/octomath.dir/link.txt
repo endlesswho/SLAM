@@ -1,0 +1,2 @@
+/usr/bin/ar cr ../../lib/liboctomath.a  CMakeFiles/octomath.dir/Vector3.cpp.o CMakeFiles/octomath.dir/Quaternion.cpp.o CMakeFiles/octomath.dir/Pose6D.cpp.o
+/usr/bin/ranlib ../../lib/liboctomath.a
