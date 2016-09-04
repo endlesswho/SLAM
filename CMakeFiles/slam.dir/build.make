@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)"
+CMAKE_SOURCE_DIR = /home/ncslabtb/SLAM_SYSU/SLAM
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)"
+CMAKE_BINARY_DIR = /home/ncslabtb/SLAM_SYSU/SLAM
 
 # Include any dependencies generated for this target.
 include CMakeFiles/slam.dir/depend.make
@@ -51,17 +51,17 @@ include CMakeFiles/slam.dir/flags.make
 
 CMakeFiles/slam.dir/main.cpp.o: CMakeFiles/slam.dir/flags.make
 CMakeFiles/slam.dir/main.cpp.o: main.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/CMakeFiles" $(CMAKE_PROGRESS_1)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/ncslabtb/SLAM_SYSU/SLAM/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/slam.dir/main.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/slam.dir/main.cpp.o -c "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/main.cpp"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/slam.dir/main.cpp.o -c /home/ncslabtb/SLAM_SYSU/SLAM/main.cpp
 
 CMakeFiles/slam.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/slam.dir/main.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/main.cpp" > CMakeFiles/slam.dir/main.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/ncslabtb/SLAM_SYSU/SLAM/main.cpp > CMakeFiles/slam.dir/main.cpp.i
 
 CMakeFiles/slam.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/slam.dir/main.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/main.cpp" -o CMakeFiles/slam.dir/main.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/ncslabtb/SLAM_SYSU/SLAM/main.cpp -o CMakeFiles/slam.dir/main.cpp.s
 
 CMakeFiles/slam.dir/main.cpp.o.requires:
 .PHONY : CMakeFiles/slam.dir/main.cpp.o.requires
@@ -74,17 +74,17 @@ CMakeFiles/slam.dir/main.cpp.o.provides.build: CMakeFiles/slam.dir/main.cpp.o
 
 CMakeFiles/slam.dir/icp.cpp.o: CMakeFiles/slam.dir/flags.make
 CMakeFiles/slam.dir/icp.cpp.o: icp.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/CMakeFiles" $(CMAKE_PROGRESS_2)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/ncslabtb/SLAM_SYSU/SLAM/CMakeFiles $(CMAKE_PROGRESS_2)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/slam.dir/icp.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/slam.dir/icp.cpp.o -c "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/icp.cpp"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/slam.dir/icp.cpp.o -c /home/ncslabtb/SLAM_SYSU/SLAM/icp.cpp
 
 CMakeFiles/slam.dir/icp.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/slam.dir/icp.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/icp.cpp" > CMakeFiles/slam.dir/icp.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/ncslabtb/SLAM_SYSU/SLAM/icp.cpp > CMakeFiles/slam.dir/icp.cpp.i
 
 CMakeFiles/slam.dir/icp.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/slam.dir/icp.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/icp.cpp" -o CMakeFiles/slam.dir/icp.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/ncslabtb/SLAM_SYSU/SLAM/icp.cpp -o CMakeFiles/slam.dir/icp.cpp.s
 
 CMakeFiles/slam.dir/icp.cpp.o.requires:
 .PHONY : CMakeFiles/slam.dir/icp.cpp.o.requires
@@ -115,8 +115,113 @@ bin/slam: /usr/lib/x86_64-linux-gnu/libboost_date_time.so
 bin/slam: /usr/lib/x86_64-linux-gnu/libboost_chrono.so
 bin/slam: /usr/lib/x86_64-linux-gnu/libpthread.so
 bin/slam: /home/ncslabtb/ethzasl_icp_mapping/libnabo/build/libnabo.a
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_system.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_thread.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_date_time.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_chrono.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libpthread.so
+bin/slam: /usr/lib/libpcl_common.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libflann_cpp_s.a
+bin/slam: /usr/lib/libpcl_kdtree.so
+bin/slam: /usr/lib/libpcl_octree.so
+bin/slam: /usr/lib/libpcl_search.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libqhull.so
+bin/slam: /usr/lib/libpcl_surface.so
+bin/slam: /usr/lib/libpcl_sample_consensus.so
+bin/slam: /usr/lib/libOpenNI.so
+bin/slam: /usr/lib/libOpenNI2.so
+bin/slam: /usr/lib/libvtkCommon.so.5.8.0
+bin/slam: /usr/lib/libvtkFiltering.so.5.8.0
+bin/slam: /usr/lib/libvtkImaging.so.5.8.0
+bin/slam: /usr/lib/libvtkGraphics.so.5.8.0
+bin/slam: /usr/lib/libvtkGenericFiltering.so.5.8.0
+bin/slam: /usr/lib/libvtkIO.so.5.8.0
+bin/slam: /usr/lib/libvtkRendering.so.5.8.0
+bin/slam: /usr/lib/libvtkVolumeRendering.so.5.8.0
+bin/slam: /usr/lib/libvtkHybrid.so.5.8.0
+bin/slam: /usr/lib/libvtkWidgets.so.5.8.0
+bin/slam: /usr/lib/libvtkParallel.so.5.8.0
+bin/slam: /usr/lib/libvtkInfovis.so.5.8.0
+bin/slam: /usr/lib/libvtkGeovis.so.5.8.0
+bin/slam: /usr/lib/libvtkViews.so.5.8.0
+bin/slam: /usr/lib/libvtkCharts.so.5.8.0
+bin/slam: /usr/lib/libpcl_io.so
+bin/slam: /usr/lib/libpcl_filters.so
+bin/slam: /usr/lib/libpcl_features.so
+bin/slam: /usr/lib/libpcl_keypoints.so
+bin/slam: /usr/lib/libpcl_registration.so
+bin/slam: /usr/lib/libpcl_segmentation.so
+bin/slam: /usr/lib/libpcl_recognition.so
+bin/slam: /usr/lib/libpcl_visualization.so
+bin/slam: /usr/lib/libpcl_people.so
+bin/slam: /usr/lib/libpcl_outofcore.so
+bin/slam: /usr/lib/libpcl_tracking.so
+bin/slam: /usr/lib/libpcl_apps.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_system.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_thread.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_date_time.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_chrono.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libpthread.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libqhull.so
+bin/slam: /usr/lib/libOpenNI.so
+bin/slam: /usr/lib/libOpenNI2.so
+bin/slam: /usr/lib/x86_64-linux-gnu/libflann_cpp_s.a
+bin/slam: /usr/lib/libvtkCommon.so.5.8.0
+bin/slam: /usr/lib/libvtkFiltering.so.5.8.0
+bin/slam: /usr/lib/libvtkImaging.so.5.8.0
+bin/slam: /usr/lib/libvtkGraphics.so.5.8.0
+bin/slam: /usr/lib/libvtkGenericFiltering.so.5.8.0
+bin/slam: /usr/lib/libvtkIO.so.5.8.0
+bin/slam: /usr/lib/libvtkRendering.so.5.8.0
+bin/slam: /usr/lib/libvtkVolumeRendering.so.5.8.0
+bin/slam: /usr/lib/libvtkHybrid.so.5.8.0
+bin/slam: /usr/lib/libvtkWidgets.so.5.8.0
+bin/slam: /usr/lib/libvtkParallel.so.5.8.0
+bin/slam: /usr/lib/libvtkInfovis.so.5.8.0
+bin/slam: /usr/lib/libvtkGeovis.so.5.8.0
+bin/slam: /usr/lib/libvtkViews.so.5.8.0
+bin/slam: /usr/lib/libvtkCharts.so.5.8.0
 bin/slam: lib/libdbscan.a
 bin/slam: lib/libransac.a
+bin/slam: /usr/lib/x86_64-linux-gnu/libboost_program_options.so
+bin/slam: /home/ncslabtb/ethzasl_icp_mapping/libnabo/build/libnabo.a
+bin/slam: /usr/lib/libpcl_common.so
+bin/slam: /usr/lib/libpcl_kdtree.so
+bin/slam: /usr/lib/libpcl_octree.so
+bin/slam: /usr/lib/libpcl_search.so
+bin/slam: /usr/lib/libpcl_surface.so
+bin/slam: /usr/lib/libpcl_sample_consensus.so
+bin/slam: /usr/lib/libpcl_io.so
+bin/slam: /usr/lib/libpcl_filters.so
+bin/slam: /usr/lib/libpcl_features.so
+bin/slam: /usr/lib/libpcl_keypoints.so
+bin/slam: /usr/lib/libpcl_registration.so
+bin/slam: /usr/lib/libpcl_segmentation.so
+bin/slam: /usr/lib/libpcl_recognition.so
+bin/slam: /usr/lib/libpcl_visualization.so
+bin/slam: /usr/lib/libpcl_people.so
+bin/slam: /usr/lib/libpcl_outofcore.so
+bin/slam: /usr/lib/libpcl_tracking.so
+bin/slam: /usr/lib/libpcl_apps.so
+bin/slam: /usr/lib/libvtkViews.so.5.8.0
+bin/slam: /usr/lib/libvtkInfovis.so.5.8.0
+bin/slam: /usr/lib/libvtkWidgets.so.5.8.0
+bin/slam: /usr/lib/libvtkVolumeRendering.so.5.8.0
+bin/slam: /usr/lib/libvtkHybrid.so.5.8.0
+bin/slam: /usr/lib/libvtkParallel.so.5.8.0
+bin/slam: /usr/lib/libvtkRendering.so.5.8.0
+bin/slam: /usr/lib/libvtkImaging.so.5.8.0
+bin/slam: /usr/lib/libvtkGraphics.so.5.8.0
+bin/slam: /usr/lib/libvtkIO.so.5.8.0
+bin/slam: /usr/lib/libvtkFiltering.so.5.8.0
+bin/slam: /usr/lib/libvtkCommon.so.5.8.0
+bin/slam: /usr/lib/libvtksys.so.5.8.0
 bin/slam: CMakeFiles/slam.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable bin/slam"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/slam.dir/link.txt --verbose=$(VERBOSE)
@@ -134,6 +239,6 @@ CMakeFiles/slam.dir/clean:
 .PHONY : CMakeFiles/slam.dir/clean
 
 CMakeFiles/slam.dir/depend:
-	cd "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)" "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)" "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)" "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)" "/home/ncslabtb/SLAM_SYSU/slam-sysu (copy)/CMakeFiles/slam.dir/DependInfo.cmake" --color=$(COLOR)
+	cd /home/ncslabtb/SLAM_SYSU/SLAM && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/ncslabtb/SLAM_SYSU/SLAM /home/ncslabtb/SLAM_SYSU/SLAM /home/ncslabtb/SLAM_SYSU/SLAM /home/ncslabtb/SLAM_SYSU/SLAM /home/ncslabtb/SLAM_SYSU/SLAM/CMakeFiles/slam.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/slam.dir/depend
 

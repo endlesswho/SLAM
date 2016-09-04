@@ -10,6 +10,13 @@
 #include "icp.h"
 #include "dbscan/dbscan.h"
 #include "ransac/ransac.h"
+#include <pcl/visualization/common/common.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/segmentation/extract_clusters.h>
+ 
 // #include "tracking/TrackManager.h"
 
 using namespace std;
@@ -25,6 +32,10 @@ using namespace Eigen;
 // #define CEIL_HEIGHT 100
 
 typedef PointMatcher<float>::TransformationParameters TransformMatrix;
+typedef std::map<int, Pointcloud> MAP;
+typedef std::pair<int, Pointcloud> PAIR;
+vector<point3d> LidarCenter;
+vector<point3d> depthpics;
 
 // global
 TransformMatrix TransAcc; // accumulated transform matrix
@@ -34,33 +45,33 @@ int total, progress; // for display progress
 class CSVRow
 {
     public:
-        std::string const& operator[](std::size_t index) const
+        string const& operator[](size_t index) const
         {
             return m_data[index];
         }
-        std::size_t size() const
+        size_t size() const
         {
             return m_data.size();
         }
-        void readNextRow(std::istream& str)
+        void readNextRow(istream& str)
         {
-            std::string         line;
-            std::getline(str,line);
+            string         line;
+            getline(str,line);
 
-            std::stringstream   lineStream(line);
-            std::string         cell;
+            stringstream   lineStream(line);
+            string         cell;
 
             m_data.clear();
-            while(std::getline(lineStream,cell,','))
+            while(getline(lineStream,cell,','))
             {
                 m_data.push_back(cell);
             }
         }
     private:
-        std::vector<std::string>    m_data;
+        vector<string>    m_data;
 };
 
-std::istream& operator>>(std::istream& str,CSVRow& data)
+istream& operator>>(istream& str,CSVRow& data)
 {
     data.readNextRow(str);
     return str;
@@ -73,7 +84,7 @@ std::istream& operator>>(std::istream& str,CSVRow& data)
  */
 Pointcloud readPointCloud(const char* filename) {
   Pointcloud Q;
-  std::ifstream in(filename);
+  ifstream in(filename);
   CSVRow row;
   while(in >> row)
   {
@@ -85,19 +96,6 @@ Pointcloud readPointCloud(const char* filename) {
   }
   return Q;
 }
-
-// void extractGround(Pointcloud P, Pointcloud & ground, Pointcloud &nonGround) {
-//   bool *isGround;
-//   isGround = ransacFitPlane(P, 0.5, 6000, 500);
-//   int size = P.size();
-//   for (int i = 0; i < size; i++) {
-//     if (isGround[i]) {
-//       ground.push_back(P[i]);
-//     } else {
-//       nonGround.push_back(P[i]);
-//     }
-//   }
-// }
 
 void extractGround(Pointcloud P, Pointcloud & ground, Pointcloud &nonGround) {
   point3d upper, lower;
@@ -127,7 +125,7 @@ Pointcloud limitXY(Pointcloud P, float max) {
   return result;
 }
 
-void getClusterFeatures(Pointcloud cluster, point3d &centroid, point3d & boxSize) {
+void getClusterFeatures(Pointcloud cluster, point3d &centroid, point3d & boxSize, point3d &ClusterCenter) {
   int size = cluster.size();
   // calc centroid
   float x = 0, y = 0, z = 0;
@@ -141,9 +139,10 @@ void getClusterFeatures(Pointcloud cluster, point3d &centroid, point3d & boxSize
   point3d upper, lower;
   cluster.calcBBX(lower, upper);
   boxSize = point3d(upper.x() - lower.x(), upper.y() - lower.y(), upper.z() - lower.z());
+  ClusterCenter = point3d((upper.x()+lower.x())/2, (upper.y()+lower.y())/2, (upper.z()+lower.z())/2);
 }
 
-void getInAndOutliners(Pointcloud P, Pointcloud Q, bool * cs, bool *cs2, Pointcloud &inliners, Pointcloud &outliners, Pointcloud &inliners2, Pointcloud &outliners2) {
+void getInAndOutliners(Pointcloud P, bool * cs, Pointcloud &inliners, Pointcloud &outliners) {
   inliners.clear();
   outliners.clear();
   int size = P.size();
@@ -156,62 +155,227 @@ void getInAndOutliners(Pointcloud P, Pointcloud Q, bool * cs, bool *cs2, Pointcl
       count++;
     }
   }
-  inliners2.clear();
-  outliners2.clear();
-  size = Q.size();
-  count = 0;
-  for (int i = 0; i < size; i++) {
-    if (cs2[i]) {
-      inliners2.push_back(Q[i]);
-    } else {
-      outliners2.push_back(Q[i]);
-      count++;
-    }
-  }
 }
 
-Pointcloud dynamicFilter(Pointcloud P_origion, Pointcloud P, Pointcloud Q, std::vector<Pointcloud> &movingObjs){
-  Pointcloud inliners;
-  Pointcloud outliners;
-  float throttle = 0.05;
-  movingObjs.clear();
-  // match
-  Matrix<float, 4, Dynamic> features_Q = getFeaturesMatrix(Q);
-  Matrix<float, 4, Dynamic> features_P = getFeaturesMatrix(P);
+void octree2pcl(Pointcloud tree){
+  // unsigned int maxDepth = tree.getTreeDepth();
+  // cout << "tree depth is " << maxDepth << endl;
+  // expand collapsed occupied nodes until all occupied leaves are at maximum depth
+  vector<point3d> pcl;
+  for (Pointcloud::iterator it = tree.begin(); it != tree.end(); ++it)
+  {
+    pcl.push_back(*it);
+  }
+ string outputFilename = "outliners.pcd";
+  ofstream f(outputFilename.c_str(), ofstream::out);
+  f << "# .PCD v0.7" << endl
+    << "VERSION 0.7" << endl
+    << "FIELDS x y z" << endl
+    << "SIZE 4 4 4" << endl
+    << "TYPE F F F" << endl
+    << "COUNT 1 1 1" << endl
+    << "WIDTH " << pcl.size() << endl
+    << "HEIGHT 1" << endl
+    << "VIEWPOINT 0 0 0 0 0 0 1" << endl
+    << "POINTS " << pcl.size() << endl
+    << "DATA ascii" << endl;
+  for (size_t i = 0; i < pcl.size(); i++)
+      f << pcl[i].x() << " " << pcl[i].y() << " " << pcl[i].z() << endl;
+  f.close();
+}
 
-  Labels featureLabels;
-  featureLabels.push_back(Label("x"));
-  featureLabels.push_back(Label("y"));
-  featureLabels.push_back(Label("z"));
+// pcl EduclideanClusterExtraction method
+// void cluster_extraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
+//   pcl::PCDWriter writer;
+//   // Creating the KdTree object for the search method of the extraction
+//   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+//   tree->setInputCloud (cloud);
 
-  DP data1(features_P, featureLabels);
-  DP data2(features_Q, featureLabels);
-  MatrixXf M = data1.features;
-  MatrixXf N = data2.features;
+//   std::vector<pcl::PointIndices> cluster_indices;
+//   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+//   ec.setClusterTolerance (0.07); //7cm
+//   ec.setMinClusterSize (5);
+//   ec.setMaxClusterSize (1000);
+//   ec.setSearchMethod (tree);
+//   ec.setInputCloud (cloud);
+//   ec.extract (cluster_indices);
+//   int j = 0;
+//   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
+//   {
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+//     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+//       cloud_cluster->points.push_back (cloud->points[*pit]); //*
+//     cloud_cluster->width = cloud_cluster->points.size ();
+//     cloud_cluster->height = 1;
+//     cloud_cluster->is_dense = true;
 
-  NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
-  const int K = 1;
-  MatrixXi indices;
-  MatrixXf dists2;
-  indices.resize(K, N.cols());
-  dists2.resize(K, N.cols());
-  nns->knn(N, indices, dists2, K, 0, throttle);
+//     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+//     std::stringstream ss;
+//     ss << "cloud_cluster_" << j << ".pcd";
+//     writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
+//     j++;
+//   }
+// }
 
-  for (int i = 0; i < N.cols(); i++) {
-    if (dists2(i) < throttle && indices(i)) {
-      inliners.push_back(P[i]);
-    } 
-    else {
-      outliners.push_back(P[i]);
+void deleteCrop(Pointcloud &input, point3d lowerBound, point3d upperBound) {
+
+  Pointcloud result;
+
+  float min_x, min_y, min_z;
+  float max_x, max_y, max_z;
+  float x,y,z;
+
+  min_x = lowerBound(0); min_y = lowerBound(1); min_z = lowerBound(2);
+  max_x = upperBound(0); max_y = upperBound(1); max_z = upperBound(2);
+
+  for (Pointcloud::const_iterator it=input.begin(); it!=input.end(); it++) {
+    x = (*it).x();
+    y = (*it).y();
+    z = (*it).z();
+
+    if ((x >= min_x) &&
+   (y >= min_y) &&
+   (z >= min_z) &&
+   (x <= max_x) &&
+   (y <= max_y) &&
+   (z <= max_z)){
+    }
+    else{
+      result.push_back (x,y,z);
     }
   }
-  cout<<"dynamicObjects size:"<<inliners.size()<<endl;
-  for(int i=0;i<P_origion.size();i++)
-  {
-    outliners.push_back(P_origion[i]);
+
+  input.clear();
+  input.push_back(result);
+
+}
+
+// DBSCAN Cluster Extraction
+void cluster_extraction(Pointcloud dcs, ColorOcTree tree, MAP &movingObjs, TransformMatrix TransAcc, std::vector<MAP> &DynamicObjects, Pointcloud &stationary){
+
+  int size = dcs.size();
+  int * clusters_idxs = new int[size];
+ 
+  clusters_idxs = dbscan(dcs, 10, 0.5);//min_points and epsilon
+
+  MAP clusterMap;
+  for(int i=0; i<size; i++){
+    int cluster_idx = clusters_idxs[i];
+    MAP::iterator it = clusterMap.find(cluster_idx);
+    float x = dcs[i].x();
+    float y = dcs[i].y();
+    float z = dcs[i].z();
+    if (it != clusterMap.end()) {
+      (it->second).push_back(point3d(x, y, z));
+    } else {
+      Pointcloud v;
+      v.push_back(point3d(x, y, z));
+      clusterMap.insert(PAIR(cluster_idx, v));
+    }
   }
-  movingObjs.push_back(inliners);
-  return outliners;
+
+  cout<<"Cluster Size: "<<clusterMap.size()<<endl;
+  pcl::PCDWriter writer;
+  int exist = 0, movingObjs_index=0;
+  float score = 0;
+  for (MAP::iterator it = clusterMap.begin() ; it != clusterMap.end(); it++) {
+    Pointcloud cluster = it->second;
+    Pointcloud tmp(stationary);
+    point3d lowerBound, upperBound;
+    cluster.calcBBX(lowerBound, upperBound);
+    point3d ex(0.3, 0.3, 0.3);
+    // point3d ex(0.1, 0.1, 0.1);
+    lowerBound -= ex;
+    upperBound += ex;
+    tmp.crop(lowerBound, upperBound);
+    cluster.clear();
+    for(Pointcloud::iterator it = tmp.begin(); it != tmp.end(); it++)
+    {
+      cluster.push_back(*it);
+    }
+    int cluster_idx = it->first;
+    exist = 0;
+    // compare to total map to remove some not interest cluster 
+    for(Pointcloud::iterator it = cluster.begin(); it != cluster.end(); it++)
+    {
+      OcTreeNode* n = tree.search((*it));
+      if(!n){
+        exist++;
+      }
+    }
+    score = exist/cluster.size();
+    if( cluster_idx != 0 && score>0.5 && cluster.size()>50)
+    {
+      movingObjs.insert(PAIR(movingObjs_index,cluster));
+      point3d temp;
+      temp.x() = TransAcc(0, 3);
+      temp.y() = TransAcc(1, 3);
+      temp.z() = TransAcc(2, 3);
+      LidarCenter.push_back(temp);
+      pcl::PointCloud<pcl::PointXYZ> cloud;
+      cloud.width = cluster.size() +1;
+      cloud.height = 1;
+      cloud.is_dense = false;
+      cloud.points.resize (cloud.width * cloud.height); 
+      // Lidar Center
+      cloud.points[0].x = temp.x();
+      cloud.points[0].y = temp.y();
+      cloud.points[0].z = temp.z();
+      int j = 1;
+      for (Pointcloud::iterator it = cluster.begin(); it != cluster.end(); ++it)
+      {
+        // cloud.points[j].x = (*it).x() - temp.x();
+        // cloud.points[j].y = -((*it).z() - temp.z());
+        // cloud.points[j].z = (*it).y() - temp.y();
+        cloud.points[j].x = (*it).x();
+        cloud.points[j].y = (*it).y();
+        cloud.points[j].z = (*it).z();
+        j++;
+      }
+      std::stringstream ss;
+      ss << "cloud_cluster_"  << DynamicObjects.size() << "_" << movingObjs_index << ".pcd";
+      string outputFilename;
+      ss >> outputFilename;
+      pcl::io::savePCDFileBinary(outputFilename, cloud);
+      movingObjs_index++; 
+      deleteCrop(stationary, lowerBound, upperBound);
+    }
+  }
+  DynamicObjects.push_back(movingObjs);
+  // octree2pcl(stationary);
+}
+
+void transform2TSDF(Pointcloud dynObj, point3d LidarCenter,vector<point3d> &depthpics){
+  point3d center, boxSize, centroid, normal, v, dynPoint, projection, projectionCenter, temp;
+  depthpics.clear();
+  getClusterFeatures(dynObj, centroid, boxSize, center) ;
+  normal.x() = center.x() - LidarCenter.x();
+  normal.y() = center.y() - LidarCenter.y();
+  normal.z() = center.z() - LidarCenter.z(); 
+  float total = sqrt(pow((normal.x()), 2) + pow((normal.y()),2) + pow((normal.z()), 2));
+  normal.x() = normal.x()/total;
+  normal.y() = normal.y()/total;
+  normal.z() = normal.z()/total;
+  for (Pointcloud::iterator it = dynObj.begin(); it != dynObj.end(); it++) {
+    dynPoint.x() = (*it).x();
+    dynPoint.y() = (*it).y();
+    dynPoint.z() = (*it).z();
+    v.x() = dynPoint.x() - LidarCenter.x();
+    v.y() = dynPoint.y() - LidarCenter.y();
+    v.z() = dynPoint.z() - LidarCenter.z();
+    float depth = normal.dot(v);
+    projection.x() = (0.2*LidarCenter.x()+depth*dynPoint.x())/(0.2+depth);
+    projection.y() = (0.2*LidarCenter.y()+depth*dynPoint.y())/(0.2+depth);
+    // projection.z() = (0.2*LidarCenter.z()+depth*dynPoint.z())/(0.2+depth);
+    total = sqrt(pow((center.x()-LidarCenter.x()), 2) + pow((center.y()-LidarCenter.y()),2) + pow((center.z()-LidarCenter.z()), 2));
+    projectionCenter.x() = 0.2*(center.x()-LidarCenter.x())/total+LidarCenter.x();
+    projectionCenter.y() = 0.2*(center.y()-LidarCenter.y())/total+LidarCenter.y();
+    // projectionCenter.z() = 0.2*(center.z()-LidarCenter.z())/total+LidarCenter.z();
+    temp.x() = projection.x() - projectionCenter.x();
+    temp.y() = projection.y() - projectionCenter.y();
+    temp.z() = depth;
+    depthpics.push_back(temp);
+  }
 }
 
 void initMap(ColorOcTree &tree, Pointcloud P) {
@@ -224,12 +388,12 @@ void initMap(ColorOcTree &tree, Pointcloud P) {
     tree.updateNode((*it).x(), (*it).y(), (*it).z(), true);
     tree.setNodeColor((*it).x(), (*it).y(), (*it).z(), 0, 0, 255);
   }
-
 }
 
-Pointcloud updateMap(ColorOcTree &tree, Pointcloud P, Pointcloud lastP, Pointcloud lastOutliners) {
+Pointcloud updateMap(ColorOcTree &tree, Pointcloud P, Pointcloud lastP, std::vector<Pointcloud> &dcs, std::vector<MAP> &DynamicObjects) {
   long beginTime = clock();
-  Pointcloud ground, PWithOutGround, P_, inliners1, outliners1, inliners2, outliners2;
+  Pointcloud ground, PWithOutGround, P_, inliners1, outliners1, inliners2, outliners2, previousOutliners, dynObj;
+  dynObj.clear();
   // icp and dynamic dectction should be implemented without ground points
   extractGround(P, ground, PWithOutGround);
   P = PWithOutGround;
@@ -237,24 +401,32 @@ Pointcloud updateMap(ColorOcTree &tree, Pointcloud P, Pointcloud lastP, Pointclo
   bool * cs = new bool[P.size()];
   bool *cs2= new bool[lastP.size()];
   P = icp(lastP, P, TransAcc, cs, cs2);
-  getInAndOutliners(P, lastP, cs, cs2, inliners1, outliners1, inliners2, outliners2);
-  cout<<"inliners1: "<<inliners1.size()<<"inliners2: "<<inliners2.size()<<endl;
-  cout<<"lastOutliners: "<<lastOutliners.size()<<"outliners2: "<<outliners2.size()<<endl;
+  getInAndOutliners(P, cs, inliners1, outliners1);
   // dynamic detection
-  std::vector<Pointcloud> movingObjs;
+  MAP movingObjs;
+  dcs.push_back(outliners1);
+  // if(dcs.size()>=1)
+  // {
+    previousOutliners = dcs[0];
+    dcs.erase(dcs.begin());
+    cluster_extraction(previousOutliners, tree, movingObjs, TransAcc, DynamicObjects, P);
+  // }
+  for(int i=0;i<P.size();i++)
+  {
+    P_.push_back(P[i]);
+  }
 
-  P_ = dynamicFilter(inliners1, outliners2, lastOutliners, movingObjs);
-  // trackManager.update(movingObjs);
   cout<<"P_:"<<P_.size()<<endl;
   // add points
   for (Pointcloud::iterator it = P_.begin(); it != P_.end(); it++) {
     tree.updateNode((*it), true);
     tree.setNodeColor((*it).x(), (*it).y(), (*it).z(), 0, 0, 255);
   }
-
+   //free points update
   // mark and clear dynamic points
   for (int i = 0; i < movingObjs.size(); i++) {
-    Pointcloud dynObj = movingObjs[i];
+    dynObj = movingObjs[i];
+    // transform2TSDF(dynObj, LidarCenter, depthpics);
     for (Pointcloud::iterator it = dynObj.begin(); it != dynObj.end(); it++) {
       ColorOcTreeNode* node = tree.updateNode((*it), false);
       node->setLogOdds(-0.4);
@@ -263,21 +435,29 @@ Pointcloud updateMap(ColorOcTree &tree, Pointcloud P, Pointcloud lastP, Pointclo
     }
   }
 
-  tree.setNodeColor(TransAcc(0, 3), TransAcc(1, 3), TransAcc(2, 3), 255, 0, 255); // lidar current pos
+  tree.setNodeColor(TransAcc(0, 3), TransAcc(1, 3), TransAcc(2, 3), 155, 100, 255); // lidar current pos
 
   long endTime = clock();
   char msg[100];
   sprintf(msg, "frame %d/%d completed, consumed time: %.2f s.\n", progress, total, (float)(endTime-beginTime)/1000000);
   cout << msg;
-  lastOutliners.clear();
-  int size = outliners1.size();
-  for(int i=0;i<size;i++)
-  {
-    lastOutliners.push_back(outliners1[i]);
-  }
+  octree2pcl(P);
   delete[] cs;
   delete[] cs2;
   return P;
+}
+
+
+
+void viewerOneOff (pcl::visualization::PCLVisualizer& viewer)
+{
+    // set background to black (R = 0, G = 0, B = 0)
+    viewer.setBackgroundColor (0, 0, 0);
+}
+
+void viewerPsycho (pcl::visualization::PCLVisualizer& viewer)
+{
+    // you can add something here, ex:  add text in viewer
 }
 
 int main(int argc, char** argv) {
@@ -286,6 +466,18 @@ int main(int argc, char** argv) {
   int to = atoi(argv[2]);
   int step = atoi(argv[3]);
   string path = argv[4];
+
+  std::vector<Pointcloud> dcs;//Dynamic Objects Candidates
+  std::vector<MAP> DynamicObjects;
+
+  // pcl visualization
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+  // ptr transform
+  pcl::visualization::CloudViewer viewer("Cloud Viewer");
+
+  viewer.runOnVisualizationThreadOnce(viewerOneOff);
+  viewer.runOnVisualizationThreadOnce(viewerPsycho);
 
   // init
   char baseFile[50];
@@ -297,17 +489,17 @@ int main(int argc, char** argv) {
   total = (int) (to - from) / step;
   progress = 1;
 
-  Pointcloud P, lastP, lastOutliners;
+  Pointcloud P, lastP;
   lastP = base;
   char file[50];
   for (int i = from + 1; i <= to; i += step) {
     sprintf(file, "%s (Frame %04d).csv", path.c_str(), i);
     P = readPointCloud(file);
-    lastP = updateMap(tree, P, lastP, lastOutliners);
+    lastP = updateMap(tree, P, lastP, dcs, DynamicObjects);
     progress++;
+    pcl::io::loadPCDFile("outliners.pcd", *cloud);
+    viewer.showCloud(cloud);
   }
-
-  // showMovingObjsTrajectory(tree);
   // trackManager.saveTargets();
 
   // string result = "map.bt";
@@ -318,5 +510,8 @@ int main(int argc, char** argv) {
 
   cout << "wrote example file " << result << endl;
 
+  while(! viewer.wasStopped())
+  {
+  }
   return 0;
 }

@@ -29,6 +29,11 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${libpointmatcher_INCLUDE_DIRS})
 include_directories(include)
 
+find_package(PCL 1.7 REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 # 查找当前目录下的所有源文件
 # 并将名称保存到 DIR_SRCS 变量
 aux_source_directory(. DIR_SRCS)
@@ -45,5 +50,6 @@ add_executable(${PROJECT_NAME} ${DIR_SRCS})
 target_link_libraries(${PROJECT_NAME} ${libpointmatcher_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${G2O_LIBS})
 #target_link_libraries(${PROJECT_NAME} octomap)
+target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} dbscan)
 target_link_libraries(${PROJECT_NAME} ransac)

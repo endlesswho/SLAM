@@ -56,8 +56,8 @@ CMAKE_BINARY_DIR = /home/ncslabtb/SLAM_SYSU/SLAM
 # Target rules for target CMakeFiles/slam.dir
 
 # All Build rule for target.
-CMakeFiles/slam.dir/all: dbscan/CMakeFiles/dbscan.dir/all
 CMakeFiles/slam.dir/all: ransac/CMakeFiles/ransac.dir/all
+CMakeFiles/slam.dir/all: dbscan/CMakeFiles/dbscan.dir/all
 	$(MAKE) -f CMakeFiles/slam.dir/build.make CMakeFiles/slam.dir/depend
 	$(MAKE) -f CMakeFiles/slam.dir/build.make CMakeFiles/slam.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/ncslabtb/SLAM_SYSU/SLAM/CMakeFiles  3 4

@@ -14,12 +14,6 @@ octomap/OcTree.h
 octomap/CountingOcTree.h
 -
 
-/home/ncslabtb/SLAM_SYSU/SLAM/octomap/AbstractOccupancyOcTree.cpp
-octomap/AbstractOccupancyOcTree.h
--
-octomap/octomap_types.h
--
-
 /home/ncslabtb/SLAM_SYSU/SLAM/octomap/ColorOcTree.cpp
 octomap/ColorOcTree.h
 -

@@ -134,7 +134,7 @@ TransformMatrix ransacIcp(DP ref, DP data, bool *cs,bool *cs2) {
   long beginTime = clock();
   const int MAX_ITER = 10;
   const float pIn = 0.6;
-  float throttle = 0.05;
+  float throttle = 0.03;
   float errMin = -1;
   float errAcc = 0.1;
   float errStop = 0.05;
